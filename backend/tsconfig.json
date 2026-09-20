@@ -3,7 +3,7 @@
     "target": "ES2022",
     "module": "NodeNext",
     "moduleResolution": "NodeNext",
-    "rootDir": ".",
+    "rootDir": "src",
     "outDir": "./dist",
     "strict": true,
     "esModuleInterop": true,
@@ -11,8 +11,7 @@
     "types": ["node"]
   },
   "include": [
-    "src/**/*.ts",
-    "cambiar-password-operador.ts"
+    "src/**/*.ts"
   ],
   "exclude": [
     "node_modules",
