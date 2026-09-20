@@ -1,0 +1,51 @@
+# ============================================================
+# SECRETOS Y VARIABLES DE ENTORNO
+# ============================================================
+.env
+.env.*
+!.env.example
+
+# ============================================================
+# NODE / TYPESCRIPT
+# ============================================================
+node_modules/
+dist/
+build/
+coverage/
+.npm/
+*.log
+
+# ============================================================
+# FLUTTER / ANDROID
+# ============================================================
+android/.dart_tool/
+android/.idea/
+android/.gradle/
+android/build/
+android/.flutter-plugins
+android/.flutter-plugins-dependencies
+android/.packages
+android/pubspec.lock
+
+# Android generado
+android/app/build/
+android/app/.cxx/
+android/app/.externalNativeBuild/
+
+# ============================================================
+# WEB
+# ============================================================
+web/node_modules/
+web/dist/
+web/build/
+web/.vite/
+
+# ============================================================
+# IDE / SISTEMA
+# ============================================================
+.vscode/
+.idea/
+*.iml
+
+.DS_Store
+Thumbs.db
