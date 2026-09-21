@@ -208,4 +208,134 @@ router.post(
   }
 );
 
+/*
+ * PATCH /api/operadores/:id/estado
+ *
+ * Activa o desactiva un operador.
+ *
+ * Solo un usuario autenticado con rol ADMIN
+ * puede utilizar esta ruta.
+ *
+ * Estados permitidos:
+ * ACTIVO
+ * INACTIVO
+ */
+router.patch(
+  "/:id/estado",
+  autenticar,
+  requireRole("ADMIN"),
+  async (req: RequestAutenticado, res) => {
+    try {
+      const { id } = req.params;
+      const { estado } = req.body;
+
+      /*
+       * Validar ID.
+       */
+      if (!id) {
+        return res.status(400).json({
+          mensaje:
+            "El ID del operador es obligatorio."
+        });
+      }
+
+      /*
+       * Validar estado.
+       */
+      if (
+        estado !== "ACTIVO" &&
+        estado !== "INACTIVO"
+      ) {
+        return res.status(400).json({
+          mensaje:
+            "El estado debe ser ACTIVO o INACTIVO."
+        });
+      }
+
+      /*
+       * Buscar el operador antes de modificarlo.
+       */
+      const {
+        data: operadorExistente,
+        error: operadorError
+      } = await supabaseAdmin
+        .from("usuarios")
+        .select(
+          "id, nombre_completo, usuario, rol, estado, telefono, auth_user_id"
+        )
+        .eq("id", id)
+        .eq("rol", "OPERADOR")
+        .maybeSingle();
+
+      if (operadorError) {
+        console.error(
+          "ERROR BUSCANDO OPERADOR PARA CAMBIAR ESTADO:"
+        );
+        console.error(operadorError);
+
+        return res.status(500).json({
+          mensaje:
+            "No se pudo consultar el operador."
+        });
+      }
+
+      if (!operadorExistente) {
+        return res.status(404).json({
+          mensaje:
+            "El operador no existe."
+        });
+      }
+
+      /*
+       * Actualizar el estado del operador
+       * en la tabla usuarios.
+       */
+      const {
+        data: operadorActualizado,
+        error: actualizarError
+      } = await supabaseAdmin
+        .from("usuarios")
+        .update({
+          estado
+        })
+        .eq("id", id)
+        .eq("rol", "OPERADOR")
+        .select(
+          "id, nombre_completo, usuario, rol, estado, telefono, auth_user_id"
+        )
+        .single();
+
+      if (actualizarError || !operadorActualizado) {
+        console.error(
+          "ERROR ACTUALIZANDO ESTADO DEL OPERADOR:"
+        );
+        console.error(actualizarError);
+
+        return res.status(500).json({
+          mensaje:
+            "No se pudo actualizar el estado del operador."
+        });
+      }
+
+      return res.json({
+        mensaje:
+          estado === "ACTIVO"
+            ? "Operador activado correctamente."
+            : "Operador desactivado correctamente.",
+        operador: operadorActualizado
+      });
+    } catch (error) {
+      console.error(
+        "ERROR INESPERADO CAMBIANDO ESTADO DEL OPERADOR:"
+      );
+      console.error(error);
+
+      return res.status(500).json({
+        mensaje:
+          "Error interno al cambiar el estado del operador."
+      });
+    }
+  }
+);
+
 export default router;
