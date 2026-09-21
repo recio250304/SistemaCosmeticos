@@ -44,6 +44,9 @@ function Clientes() {
   const [mostrarFormulario, setMostrarFormulario] =
     useState(false);
 
+  const [clienteSeleccionado, setClienteSeleccionado] =
+    useState<Cliente | null>(null);
+
   const [editandoId, setEditandoId] =
     useState<string | null>(null);
 
@@ -146,22 +149,31 @@ function Clientes() {
     setNombreNegocio(
       clienteInicial.nombre_negocio
     );
-    setTipo(clienteInicial.tipo);
+
+    setTipo(
+      clienteInicial.tipo
+    );
+
     setNombreContacto(
       clienteInicial.nombre_contacto
     );
+
     setTelefono(
       clienteInicial.telefono
     );
+
     setTelefonoSecundario(
       clienteInicial.telefono_secundario
     );
+
     setDireccion(
       clienteInicial.direccion
     );
+
     setSector(
       clienteInicial.sector
     );
+
     setCiudad(
       clienteInicial.ciudad
     );
@@ -170,12 +182,14 @@ function Clientes() {
   function abrirFormulario() {
     limpiarFormulario();
     setEditandoId(null);
+    setClienteSeleccionado(null);
     setMensaje("");
     setError("");
     setMostrarFormulario(true);
   }
 
   function abrirEdicion(cliente: Cliente) {
+    setClienteSeleccionado(null);
     setEditandoId(cliente.id);
 
     setNombreNegocio(
@@ -213,6 +227,20 @@ function Clientes() {
     setMensaje("");
     setError("");
     setMostrarFormulario(true);
+  }
+
+  function abrirDetalle(cliente: Cliente) {
+    setMostrarFormulario(false);
+    setEditandoId(null);
+    setMensaje("");
+    setError("");
+    setClienteSeleccionado(cliente);
+  }
+
+  function cerrarDetalle() {
+    setClienteSeleccionado(null);
+    setMensaje("");
+    setError("");
   }
 
   function cerrarFormulario() {
@@ -403,6 +431,17 @@ function Clientes() {
           )
       );
 
+      if (
+        clienteSeleccionado &&
+        clienteSeleccionado.id === cliente.id
+      ) {
+        setClienteSeleccionado({
+          ...clienteSeleccionado,
+          activo:
+            datos.cliente.activo
+        });
+      }
+
       setMensaje(
         datos.mensaje ||
           "Estado actualizado correctamente."
@@ -419,6 +458,293 @@ function Clientes() {
     } finally {
       setClienteProcesando(null);
     }
+  }
+
+  function formatearFecha(
+    fecha: string | null
+  ) {
+    if (!fecha) {
+      return "—";
+    }
+
+    const fechaConvertida =
+      new Date(fecha);
+
+    if (
+      Number.isNaN(
+        fechaConvertida.getTime()
+      )
+    ) {
+      return fecha;
+    }
+
+    return fechaConvertida.toLocaleDateString(
+      "es-DO",
+      {
+        day: "2-digit",
+        month: "2-digit",
+        year: "numeric"
+      }
+    );
+  }
+
+  if (clienteSeleccionado) {
+    const procesando =
+      clienteProcesando ===
+      clienteSeleccionado.id;
+
+    return (
+      <main className="admin-page">
+        <header className="admin-page-header">
+          <div>
+            <button
+              type="button"
+              className="secondary-button"
+              onClick={cerrarDetalle}
+              style={{
+                marginBottom: "12px"
+              }}
+            >
+              ← Volver a clientes
+            </button>
+
+            <h1>
+              {clienteSeleccionado.nombre_negocio}
+            </h1>
+
+            <p>
+              Detalle del cliente y
+              establecimiento.
+            </p>
+          </div>
+
+          <div
+            style={{
+              display: "flex",
+              gap: "8px",
+              flexWrap: "wrap"
+            }}
+          >
+            <button
+              type="button"
+              className="secondary-button"
+              onClick={() =>
+                abrirEdicion(
+                  clienteSeleccionado
+                )
+              }
+              disabled={procesando}
+            >
+              Editar cliente
+            </button>
+
+            <button
+              type="button"
+              className={
+                clienteSeleccionado.activo
+                  ? "secondary-button"
+                  : "primary-button"
+              }
+              onClick={() =>
+                cambiarEstado(
+                  clienteSeleccionado
+                )
+              }
+              disabled={procesando}
+            >
+              {procesando
+                ? "Procesando..."
+                : clienteSeleccionado.activo
+                ? "Desactivar"
+                : "Activar"}
+            </button>
+          </div>
+        </header>
+
+        {error && (
+          <div className="form-message form-message-error">
+            {error}
+          </div>
+        )}
+
+        {mensaje && (
+          <div className="form-message form-message-success">
+            {mensaje}
+          </div>
+        )}
+
+        <section className="admin-table-card">
+          <div className="table-header">
+            <h2>
+              Información del cliente
+            </h2>
+
+            <span
+              className={`status-badge ${
+                clienteSeleccionado.activo
+                  ? "status-active"
+                  : "status-inactive"
+              }`}
+            >
+              {clienteSeleccionado.activo
+                ? "ACTIVO"
+                : "INACTIVO"}
+            </span>
+          </div>
+
+          <div className="operator-form-grid">
+            <div className="form-group">
+              <label>
+                Nombre del negocio
+              </label>
+
+              <input
+                type="text"
+                value={
+                  clienteSeleccionado.nombre_negocio
+                }
+                readOnly
+              />
+            </div>
+
+            <div className="form-group">
+              <label>
+                Tipo de negocio
+              </label>
+
+              <input
+                type="text"
+                value={
+                  clienteSeleccionado.tipo ===
+                  "BARBERIA"
+                    ? "Barbería"
+                    : "Salón"
+                }
+                readOnly
+              />
+            </div>
+
+            <div className="form-group">
+              <label>
+                Nombre del contacto
+              </label>
+
+              <input
+                type="text"
+                value={
+                  clienteSeleccionado.nombre_contacto
+                }
+                readOnly
+              />
+            </div>
+
+            <div className="form-group">
+              <label>
+                Teléfono
+              </label>
+
+              <input
+                type="text"
+                value={
+                  clienteSeleccionado.telefono ||
+                  "—"
+                }
+                readOnly
+              />
+            </div>
+
+            <div className="form-group">
+              <label>
+                Teléfono secundario
+              </label>
+
+              <input
+                type="text"
+                value={
+                  clienteSeleccionado
+                    .telefono_secundario ||
+                  "—"
+                }
+                readOnly
+              />
+            </div>
+
+            <div className="form-group">
+              <label>
+                Ciudad
+              </label>
+
+              <input
+                type="text"
+                value={
+                  clienteSeleccionado.ciudad ||
+                  "—"
+                }
+                readOnly
+              />
+            </div>
+
+            <div className="form-group">
+              <label>
+                Sector
+              </label>
+
+              <input
+                type="text"
+                value={
+                  clienteSeleccionado.sector ||
+                  "—"
+                }
+                readOnly
+              />
+            </div>
+
+            <div className="form-group">
+              <label>
+                Dirección
+              </label>
+
+              <input
+                type="text"
+                value={
+                  clienteSeleccionado.direccion ||
+                  "—"
+                }
+                readOnly
+              />
+            </div>
+
+            <div className="form-group">
+              <label>
+                Cliente registrado
+              </label>
+
+              <input
+                type="text"
+                value={formatearFecha(
+                  clienteSeleccionado.creado_en
+                )}
+                readOnly
+              />
+            </div>
+
+            <div className="form-group">
+              <label>
+                Autorizado
+              </label>
+
+              <input
+                type="text"
+                value={formatearFecha(
+                  clienteSeleccionado.autorizado_en
+                )}
+                readOnly
+              />
+            </div>
+          </div>
+        </section>
+      </main>
+    );
   }
 
   return (
@@ -753,9 +1079,31 @@ function Clientes() {
                           }
                         >
                           <td>
-                            {
-                              cliente.nombre_negocio
-                            }
+                            <button
+                              type="button"
+                              onClick={() =>
+                                abrirDetalle(
+                                  cliente
+                                )
+                              }
+                              style={{
+                                border: "none",
+                                background:
+                                  "transparent",
+                                padding: 0,
+                                margin: 0,
+                                cursor:
+                                  "pointer",
+                                font: "inherit",
+                                fontWeight: 600,
+                                textAlign:
+                                  "left"
+                              }}
+                            >
+                              {
+                                cliente.nombre_negocio
+                              }
+                            </button>
                           </td>
 
                           <td>
@@ -814,6 +1162,20 @@ function Clientes() {
                                   "wrap"
                               }}
                             >
+                              <button
+                                className="primary-button"
+                                onClick={() =>
+                                  abrirDetalle(
+                                    cliente
+                                  )
+                                }
+                                disabled={
+                                  procesando
+                                }
+                              >
+                                Ver
+                              </button>
+
                               <button
                                 className="secondary-button"
                                 onClick={() =>

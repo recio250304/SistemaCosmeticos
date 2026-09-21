@@ -1,4 +1,4 @@
-const API_URL = "http://localhost:3000";
+const API_URL = "https://sistemacosmeticos.onrender.com";
 
 export async function apiFetch(
   ruta: string,
