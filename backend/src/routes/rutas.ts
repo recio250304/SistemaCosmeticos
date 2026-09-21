@@ -431,7 +431,7 @@ router.get(
             descripcion,
             precio,
             costo,
-            disponible
+            tipo
           )
           `
         )
@@ -458,11 +458,15 @@ router.get(
       // --------------------------------------------------------
       // Calcular cantidad disponible en la ruta.
       //
-      // disponible =
+      // cantidad_disponible =
       // cantidad_salida
       // - cantidad_vendida
       // - cantidad_devuelta
       // + cantidad_ajustada
+      //
+      // IMPORTANTE:
+      // Esto representa existencia física de la ruta.
+      // No es el antiguo campo productos.disponible.
       // --------------------------------------------------------
       const inventario = (
         inventarioRuta ?? []
@@ -633,7 +637,7 @@ router.get(
             nombre,
             precio,
             costo,
-            disponible
+            tipo
           )
           `
         )
@@ -959,7 +963,7 @@ router.post(
       } = await supabaseAdmin
         .from("productos")
         .select(
-          "id, codigo, nombre, precio, costo, disponible"
+          "id, codigo, nombre, precio, costo, tipo"
         )
         .eq("id", producto_id)
         .maybeSingle();
@@ -980,13 +984,6 @@ router.post(
         return res.status(404).json({
           mensaje:
             "El producto no existe."
-        });
-      }
-
-      if (!producto.disponible) {
-        return res.status(400).json({
-          mensaje:
-            "El producto no está disponible."
         });
       }
 
@@ -1268,7 +1265,8 @@ router.post(
         producto: {
           id: producto.id,
           codigo: producto.codigo,
-          nombre: producto.nombre
+          nombre: producto.nombre,
+          tipo: producto.tipo
         },
 
         inventario_almacen: {

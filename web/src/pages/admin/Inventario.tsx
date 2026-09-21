@@ -14,7 +14,7 @@ interface ProductoInventario {
         descripcion: string | null;
         precio: number;
         costo: number;
-        disponible: boolean;
+        tipo: string;
       }
     | null;
 }
@@ -128,7 +128,8 @@ function Inventario() {
             producto_id:
               productoSeleccionado.producto_id,
             cantidad: cantidadNumerica,
-            descripcion: descripcion.trim() || null
+            descripcion:
+              descripcion.trim() || null
           })
         },
         sesion?.access_token
@@ -180,6 +181,7 @@ function Inventario() {
       >
         <div>
           <h2>Inventario</h2>
+
           <p>
             Existencias actuales del almacén.
           </p>
@@ -210,6 +212,7 @@ function Inventario() {
       {inventario.length === 0 ? (
         <div className="dashboard-card">
           <h3>No hay productos en inventario</h3>
+
           <p>
             Los productos aparecerán aquí cuando tengan
             un registro de inventario.
@@ -229,31 +232,66 @@ function Inventario() {
           >
             <thead>
               <tr>
-                <th style={{ textAlign: "left", padding: "10px" }}>
+                <th
+                  style={{
+                    textAlign: "left",
+                    padding: "10px"
+                  }}
+                >
                   Código
                 </th>
 
-                <th style={{ textAlign: "left", padding: "10px" }}>
+                <th
+                  style={{
+                    textAlign: "left",
+                    padding: "10px"
+                  }}
+                >
                   Producto
                 </th>
 
-                <th style={{ textAlign: "right", padding: "10px" }}>
+                <th
+                  style={{
+                    textAlign: "right",
+                    padding: "10px"
+                  }}
+                >
                   Precio
                 </th>
 
-                <th style={{ textAlign: "right", padding: "10px" }}>
+                <th
+                  style={{
+                    textAlign: "right",
+                    padding: "10px"
+                  }}
+                >
                   Costo
                 </th>
 
-                <th style={{ textAlign: "center", padding: "10px" }}>
+                <th
+                  style={{
+                    textAlign: "center",
+                    padding: "10px"
+                  }}
+                >
                   Existencia
                 </th>
 
-                <th style={{ textAlign: "center", padding: "10px" }}>
+                <th
+                  style={{
+                    textAlign: "center",
+                    padding: "10px"
+                  }}
+                >
                   Estado
                 </th>
 
-                <th style={{ textAlign: "center", padding: "10px" }}>
+                <th
+                  style={{
+                    textAlign: "center",
+                    padding: "10px"
+                  }}
+                >
                   Acción
                 </th>
               </tr>
@@ -267,13 +305,24 @@ function Inventario() {
                   return null;
                 }
 
+                const tieneExistencia =
+                  Number(item.cantidad) > 0;
+
                 return (
                   <tr key={item.producto_id}>
-                    <td style={{ padding: "10px" }}>
+                    <td
+                      style={{
+                        padding: "10px"
+                      }}
+                    >
                       {producto.codigo}
                     </td>
 
-                    <td style={{ padding: "10px" }}>
+                    <td
+                      style={{
+                        padding: "10px"
+                      }}
+                    >
                       {producto.nombre}
                     </td>
 
@@ -283,7 +332,10 @@ function Inventario() {
                         textAlign: "right"
                       }}
                     >
-                      RD${Number(producto.precio).toFixed(2)}
+                      RD$
+                      {Number(
+                        producto.precio
+                      ).toFixed(2)}
                     </td>
 
                     <td
@@ -292,7 +344,10 @@ function Inventario() {
                         textAlign: "right"
                       }}
                     >
-                      RD${Number(producto.costo).toFixed(2)}
+                      RD$
+                      {Number(
+                        producto.costo
+                      ).toFixed(2)}
                     </td>
 
                     <td
@@ -311,9 +366,9 @@ function Inventario() {
                         textAlign: "center"
                       }}
                     >
-                      {producto.disponible
+                      {tieneExistencia
                         ? "DISPONIBLE"
-                        : "NO DISPONIBLE"}
+                        : "AGOTADO"}
                     </td>
 
                     <td
@@ -344,7 +399,8 @@ function Inventario() {
             style={{
               position: "fixed",
               inset: 0,
-              background: "rgba(0, 0, 0, 0.5)",
+              background:
+                "rgba(0, 0, 0, 0.5)",
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
@@ -365,16 +421,24 @@ function Inventario() {
 
               <p>
                 <strong>
-                  {productoSeleccionado.productos.codigo}
+                  {
+                    productoSeleccionado
+                      .productos.codigo
+                  }
                 </strong>
                 {" — "}
-                {productoSeleccionado.productos.nombre}
+                {
+                  productoSeleccionado
+                    .productos.nombre
+                }
               </p>
 
               <p>
                 Existencia actual:{" "}
                 <strong>
-                  {productoSeleccionado.cantidad}
+                  {
+                    productoSeleccionado.cantidad
+                  }
                 </strong>
               </p>
 
@@ -396,7 +460,9 @@ function Inventario() {
                   step="1"
                   value={cantidad}
                   onChange={(e) =>
-                    setCantidad(e.target.value)
+                    setCantidad(
+                      e.target.value
+                    )
                   }
                   placeholder="Ej. 20"
                 />
@@ -408,7 +474,9 @@ function Inventario() {
                 <textarea
                   value={descripcion}
                   onChange={(e) =>
-                    setDescripcion(e.target.value)
+                    setDescripcion(
+                      e.target.value
+                    )
                   }
                   placeholder="Ej. Compra de mercancía"
                   rows={3}
@@ -418,7 +486,8 @@ function Inventario() {
               <div
                 style={{
                   display: "flex",
-                  justifyContent: "flex-end",
+                  justifyContent:
+                    "flex-end",
                   gap: "10px",
                   marginTop: "20px"
                 }}

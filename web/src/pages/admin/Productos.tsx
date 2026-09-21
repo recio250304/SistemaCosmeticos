@@ -3,6 +3,7 @@ import {
   useEffect,
   useState
 } from "react";
+
 import { useAuth } from "../../context/AuthContext";
 import { apiFetch } from "../../api/api";
 
@@ -12,8 +13,10 @@ interface Producto {
   descripcion: string | null;
   precio: number;
   costo: number;
-  tipo: "INDIVIDUAL" | "KIT";
-  disponible: boolean;
+  tipo:
+    | "INDIVIDUAL"
+    | "KIT_SALON"
+    | "KIT_BARBERIA";
   creado_en: string;
   actualizado_en: string;
 }
@@ -23,8 +26,10 @@ interface ProductoFormulario {
   descripcion: string;
   precio: string;
   costo: string;
-  tipo: "INDIVIDUAL" | "KIT";
-  disponible: boolean;
+  tipo:
+    | "INDIVIDUAL"
+    | "KIT_SALON"
+    | "KIT_BARBERIA";
 }
 
 const formularioInicial: ProductoFormulario = {
@@ -32,8 +37,7 @@ const formularioInicial: ProductoFormulario = {
   descripcion: "",
   precio: "",
   costo: "",
-  tipo: "INDIVIDUAL",
-  disponible: true
+  tipo: "INDIVIDUAL"
 };
 
 function Productos() {
@@ -89,11 +93,14 @@ function Productos() {
           datos.mensaje ||
             "No se pudieron cargar los productos."
         );
+
         return;
       }
 
       setProductos(
-        datos.productos || []
+        Array.isArray(datos.productos)
+          ? datos.productos
+          : []
       );
     } catch (error) {
       console.error(
@@ -115,7 +122,7 @@ function Productos() {
 
   function actualizarCampo(
     campo: keyof ProductoFormulario,
-    valor: string | boolean
+    valor: string
   ) {
     setFormulario((actual) => ({
       ...actual,
@@ -155,10 +162,7 @@ function Productos() {
         String(producto.costo ?? ""),
 
       tipo:
-        producto.tipo,
-
-      disponible:
-        producto.disponible
+        producto.tipo
     });
 
     window.scrollTo({
@@ -176,6 +180,7 @@ function Productos() {
       setError(
         "La sesión no está disponible."
       );
+
       return;
     }
 
@@ -184,6 +189,17 @@ function Productos() {
     setGuardando(true);
 
     try {
+      const nombre =
+        formulario.nombre.trim();
+
+      if (!nombre) {
+        setError(
+          "El nombre del producto es obligatorio."
+        );
+
+        return;
+      }
+
       const precio =
         Number(formulario.precio);
 
@@ -197,6 +213,7 @@ function Productos() {
         setError(
           "El precio debe ser un número válido mayor o igual a 0."
         );
+
         return;
       }
 
@@ -207,6 +224,7 @@ function Productos() {
         setError(
           "El costo debe ser un número válido mayor o igual a 0."
         );
+
         return;
       }
 
@@ -225,8 +243,7 @@ function Productos() {
             : "POST",
 
           body: JSON.stringify({
-            nombre:
-              formulario.nombre.trim(),
+            nombre,
 
             descripcion:
               formulario.descripcion.trim(),
@@ -236,10 +253,7 @@ function Productos() {
             costo,
 
             tipo:
-              formulario.tipo,
-
-            disponible:
-              formulario.disponible
+              formulario.tipo
           })
         },
         sesion.access_token
@@ -253,7 +267,45 @@ function Productos() {
           datos.mensaje ||
             "No se pudo guardar el producto."
         );
+
         return;
+      }
+
+      /*
+       * Si el backend devuelve el producto
+       * actualizado, sincronizamos inmediatamente
+       * la lista local.
+       */
+      if (
+        datos.producto &&
+        datos.producto.id
+      ) {
+        setProductos((actuales) => {
+          const existe =
+            actuales.some(
+              (producto) =>
+                producto.id ===
+                datos.producto.id
+            );
+
+          if (existe) {
+            return actuales.map(
+              (producto) =>
+                producto.id ===
+                datos.producto.id
+                  ? {
+                      ...producto,
+                      ...datos.producto
+                    }
+                  : producto
+            );
+          }
+
+          return [
+            datos.producto,
+            ...actuales
+          ];
+        });
       }
 
       setMensaje(
@@ -264,6 +316,11 @@ function Productos() {
 
       limpiarFormulario();
 
+      /*
+       * Recargamos desde el backend para
+       * confirmar que la base de datos tiene
+       * exactamente el mismo estado.
+       */
       await cargarProductos();
     } catch (error) {
       console.error(
@@ -276,63 +333,6 @@ function Productos() {
       );
     } finally {
       setGuardando(false);
-    }
-  }
-
-  async function cambiarDisponibilidad(
-    producto: Producto
-  ) {
-    if (!sesion?.access_token) {
-      setError(
-        "La sesión no está disponible."
-      );
-      return;
-    }
-
-    setError("");
-    setMensaje("");
-
-    try {
-      const respuesta = await apiFetch(
-        `/api/productos/${producto.id}/disponibilidad`,
-        {
-          method: "PATCH",
-
-          body: JSON.stringify({
-            disponible:
-              !producto.disponible
-          })
-        },
-        sesion.access_token
-      );
-
-      const datos =
-        await respuesta.json();
-
-      if (!respuesta.ok) {
-        setError(
-          datos.mensaje ||
-            "No se pudo cambiar la disponibilidad del producto."
-        );
-        return;
-      }
-
-      setMensaje(
-        producto.disponible
-          ? "Producto marcado como no disponible."
-          : "Producto marcado como disponible."
-      );
-
-      await cargarProductos();
-    } catch (error) {
-      console.error(
-        "ERROR CAMBIANDO DISPONIBILIDAD:",
-        error
-      );
-
-      setError(
-        "No se pudo conectar con el servidor."
-      );
     }
   }
 
@@ -364,6 +364,22 @@ function Productos() {
         );
       }
     );
+
+  function mostrarTipo(
+    tipo: Producto["tipo"]
+  ) {
+    switch (tipo) {
+      case "KIT_SALON":
+        return "KIT SALÓN";
+
+      case "KIT_BARBERIA":
+        return "KIT BARBERÍA";
+
+      case "INDIVIDUAL":
+      default:
+        return "INDIVIDUAL";
+    }
+  }
 
   if (cargando) {
     return (
@@ -443,7 +459,8 @@ function Productos() {
                   "tipo",
                   event.target.value as
                     | "INDIVIDUAL"
-                    | "KIT"
+                    | "KIT_SALON"
+                    | "KIT_BARBERIA"
                 )
               }
               required
@@ -452,8 +469,12 @@ function Productos() {
                 Individual
               </option>
 
-              <option value="KIT">
-                Kit
+              <option value="KIT_SALON">
+                Kit Salón
+              </option>
+
+              <option value="KIT_BARBERIA">
+                Kit Barbería
               </option>
             </select>
           </div>
@@ -522,36 +543,6 @@ function Productos() {
               rows={3}
             />
           </div>
-
-          <div className="form-group">
-            <label htmlFor="producto-disponible">
-              Disponibilidad
-            </label>
-
-            <select
-              id="producto-disponible"
-              value={
-                formulario.disponible
-                  ? "true"
-                  : "false"
-              }
-              onChange={(event) =>
-                actualizarCampo(
-                  "disponible",
-                  event.target.value ===
-                    "true"
-                )
-              }
-            >
-              <option value="true">
-                Disponible
-              </option>
-
-              <option value="false">
-                No disponible
-              </option>
-            </select>
-          </div>
         </div>
 
         <div className="admin-form-actions">
@@ -599,12 +590,32 @@ function Productos() {
           <input
             type="search"
             value={busqueda}
-            onChange={(event) =>
+            onChange={(event) => {
+              /*
+               * El buscador solamente modifica
+               * su propio estado.
+               */
               setBusqueda(
                 event.target.value
-              )
-            }
+              );
+            }}
+            onKeyDown={(event) => {
+              /*
+               * Evita que cualquier manejador
+               * global del Dashboard interprete
+               * las teclas del buscador como
+               * navegación.
+               */
+              event.stopPropagation();
+            }}
+            onKeyUp={(event) => {
+              event.stopPropagation();
+            }}
+            onKeyPress={(event) => {
+              event.stopPropagation();
+            }}
             placeholder="Buscar producto..."
+            autoComplete="off"
             style={{
               minWidth: "250px"
             }}
@@ -639,10 +650,6 @@ function Productos() {
                 </th>
 
                 <th>
-                  Disponibilidad
-                </th>
-
-                <th>
                   Acciones
                 </th>
               </tr>
@@ -671,10 +678,9 @@ function Productos() {
                     </td>
 
                     <td>
-                      {producto.tipo ===
-                      "KIT"
-                        ? "KIT"
-                        : "INDIVIDUAL"}
+                      {mostrarTipo(
+                        producto.tipo
+                      )}
                     </td>
 
                     <td>
@@ -692,20 +698,6 @@ function Productos() {
                     </td>
 
                     <td>
-                      <span
-                        className={
-                          producto.disponible
-                            ? "status-active"
-                            : "status-inactive"
-                        }
-                      >
-                        {producto.disponible
-                          ? "DISPONIBLE"
-                          : "NO DISPONIBLE"}
-                      </span>
-                    </td>
-
-                    <td>
                       <div className="admin-table-actions">
                         <button
                           type="button"
@@ -716,19 +708,6 @@ function Productos() {
                           }
                         >
                           Editar
-                        </button>
-
-                        <button
-                          type="button"
-                          onClick={() =>
-                            cambiarDisponibilidad(
-                              producto
-                            )
-                          }
-                        >
-                          {producto.disponible
-                            ? "No disponible"
-                            : "Disponible"}
                         </button>
                       </div>
                     </td>

@@ -222,7 +222,7 @@ router.get(
               nombre,
               precio,
               costo,
-              disponible
+              tipo
             ),
             kits (
               id,
@@ -297,8 +297,10 @@ router.get(
 
       return res.json({
         venta,
-        detalles: detalles ?? [],
-        pagos: pagos ?? []
+        detalles:
+          detalles ?? [],
+        pagos:
+          pagos ?? []
       });
 
     } catch (error) {
@@ -361,8 +363,11 @@ router.post(
       }
 
       if (
-        typeof descuento !== "number" ||
-        !Number.isFinite(descuento) ||
+        typeof descuento !==
+          "number" ||
+        !Number.isFinite(
+          descuento
+        ) ||
         descuento < 0
       ) {
         return res.status(400).json({
@@ -376,7 +381,8 @@ router.post(
       ) {
         if (
           !detalle ||
-          typeof detalle !== "object"
+          typeof detalle !==
+            "object"
         ) {
           return res.status(400).json({
             mensaje:
@@ -391,7 +397,8 @@ router.post(
           !!detalle.kit_id;
 
         if (
-          tieneProducto === tieneKit
+          tieneProducto ===
+          tieneKit
         ) {
           return res.status(400).json({
             mensaje:
@@ -455,7 +462,8 @@ router.post(
         return res.status(400).json({
           mensaje:
             "No se pudo registrar la venta.",
-          error: error.message
+          error:
+            error.message
         });
       }
 
@@ -509,14 +517,18 @@ router.post(
       const {
         monto,
         medio_pago,
-        cuenta_bancaria_id = null,
+        cuenta_bancaria_id =
+          null,
         referencia = null,
         observaciones = null
       } = req.body;
 
       if (
-        typeof monto !== "number" ||
-        !Number.isFinite(monto) ||
+        typeof monto !==
+          "number" ||
+        !Number.isFinite(
+          monto
+        ) ||
         monto <= 0
       ) {
         return res.status(400).json({
@@ -526,7 +538,8 @@ router.post(
       }
 
       if (
-        typeof medio_pago !== "string" ||
+        typeof medio_pago !==
+          "string" ||
         !medio_pago.trim()
       ) {
         return res.status(400).json({
@@ -628,7 +641,8 @@ router.post(
         return res.status(400).json({
           mensaje:
             "No se pudo registrar el pago.",
-          error: error.message
+          error:
+            error.message
         });
       }
 

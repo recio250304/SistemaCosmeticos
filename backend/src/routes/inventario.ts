@@ -12,10 +12,10 @@ const router = Router();
 // GET /api/inventario
 // Lista TODOS los productos con su inventario actual.
 //
-// Los datos del producto se devuelven directamente en el objeto
-// para que puedan ser utilizados por Inventario y Rutas.
+// La existencia real del producto se determina mediante
+// inventario_almacen.cantidad.
 //
-// También se mantiene "productos" por compatibilidad.
+// Ya NO se utiliza productos.disponible.
 // ============================================================
 router.get(
   "/",
@@ -39,7 +39,7 @@ router.get(
           descripcion,
           precio,
           costo,
-          disponible,
+          tipo,
           creado_en,
           actualizado_en
           `
@@ -135,7 +135,7 @@ router.get(
             descripcion: producto.descripcion,
             precio: producto.precio,
             costo: producto.costo,
-            disponible: producto.disponible,
+            tipo: producto.tipo,
 
             // --------------------------------------------------
             // Inventario
@@ -157,7 +157,7 @@ router.get(
               descripcion: producto.descripcion,
               precio: producto.precio,
               costo: producto.costo,
-              disponible: producto.disponible
+              tipo: producto.tipo
             }
           };
         }
@@ -230,7 +230,7 @@ router.post(
       } = await supabaseAdmin
         .from("productos")
         .select(
-          "id, codigo, nombre, disponible"
+          "id, codigo, nombre, tipo"
         )
         .eq("id", producto_id)
         .maybeSingle();
@@ -386,7 +386,10 @@ router.post(
             producto.codigo,
 
           nombre:
-            producto.nombre
+            producto.nombre,
+
+          tipo:
+            producto.tipo
         },
 
         inventario: {
